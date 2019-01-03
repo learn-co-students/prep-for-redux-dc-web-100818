@@ -1,59 +1,83 @@
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import logo from "./logo.svg";
+import "./App.css";
+import { createStore } from "redux";
+
+// set up our store
+
+// takes in (state: { count }, action: { type: string }), returns state: { count }
+const reducer = (state = { count: 0 }, action) => {
+  // return the new state
+  console.log("state", state, "action", action);
+
+  switch (action.type) {
+    case "CHANGE":
+      return { count: state.count + action.value };
+    default:
+      return state;
+  }
+};
+
+const makeAction = (num) => {
+  return {type: "CHANGE", value: num}
+}
+
+const store = createStore(reducer);
 
 class App extends Component {
- state = { count: 0 };
+  componentDidMount() {
+    store.subscribe(() => this.forceUpdate());
+  }
 
- increment = () => {
-   this.setState(prevState => ({ count: prevState.count + 1 }));
- };
-
- decrement = () => {
-   this.setState(prevState => ({ count: prevState.count - 1 }));
- };
-
- renderDescription = () => {
-   const remainder = this.state.count % 5;
-   const upToNext = 5 - remainder;
-   return `The current count is less than ${this.state.count + upToNext}`;
- };
-
- render() {
-   return (
-     <div className="App">
-       <Header count={this.state.count} renderDescription={this.renderDescription}/>
-       <Counter count={this.state.count} renderDescription={this.renderDescription} increment={this.increment} decrement={this.decrement}/>
-     </div>
-   );
- }
+  render() {
+    return (
+      <div className="App">
+        <Header />
+        <Counter />
+      </div>
+    );
+  }
 }
 
 class Header extends Component {
- render() {
-   return (
-     <header className="App-header">
-       <img src={logo} className="App-logo" alt="logo" />
-       <h1 className="App-title">{this.props.renderDescription}</h1>
-     </header>
-   );
- }
+  renderDescription = () => {
+    const count = store.getState().count;
+    const remainder = count % 5;
+    const upToNext = 5 - remainder;
+    return `The current count is less than ${count + upToNext}`;
+  };
+
+  render() {
+    return (
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <h1 className="App-title">Welcome to React</h1>
+        <h3>{this.renderDescription()}</h3>
+      </header>
+    );
+  }
 }
 
 class Counter extends Component {
 
- render() {
-   return (
-     <div className="Counter">
-       <h1>{this.props.count}</h1>
-       <button onClick={this.props.decrement}> - </button>
-       <button onClick={this.props.increment}> + </button>
-       <h3>{this.props.renderDescription()}</h3>
-     </div>
-   );
- }
+  makeButtons = () => {
+  let arr = []
+  for(let i = -10; i<11; i++) {
+    arr.push(<button onClick={ () => {store.dispatch(makeAction(i))} }> {i} </button>)
+  }
+  return arr
+  }
+
+  render() {
+    return (
+      <div className="Counter">
+        <h1>{store.getState().count}</h1>
+          {this.makeButtons()}
+      </div>
+    );
+  }
 }
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(<App />, document.getElementById("root"));
